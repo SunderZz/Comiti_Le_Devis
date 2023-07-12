@@ -86,10 +86,13 @@ $prixTVA = 1.2;
     $prixHT = $prixAdherents + $prixSections;}
 // Prix TTC
 $prixTTC = $prixHT * $prixTVA;
+$prixTTCFormater = number_format($prixTTC, 2);
 //Prix Mensuel
 $prixMensuel = $prixTTC / 12;
+$prixMensuelFormater = number_format($prixMensuel, 2);
+
 // Stock les valeurs dans un tableau
-return array($prixAdherents, $prixSections, $avantage, $prixTTC, $prixTVA, $prixMensuel);
+return array($prixAdherents, $prixSections, $avantage, $prixTTCFormater, $prixTVA, $prixMensuelFormater);
 }
     //Recuperation des inputs 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -97,7 +100,7 @@ return array($prixAdherents, $prixSections, $avantage, $prixTTC, $prixTVA, $prix
     $nbSections = filter_input(INPUT_POST, 'sections', FILTER_SANITIZE_SPECIAL_CHARS);
     $federation = filter_input(INPUT_POST, 'federation', FILTER_SANITIZE_SPECIAL_CHARS);
 // Echo en retournant ce qui est dans  l'array de ma fonction
-list($prixAdherents, $prixSections, $avantage, $prixTTC, $prixTva, $prixMensuel) = Prix($nbAdherents, $nbSections, $federation);
+list($prixAdherents, $prixSections, $avantage, $prixTTCFormater, $prixTva, $prixMensuelFormater) = Prix($nbAdherents, $nbSections, $federation);
     echo "<tr>
     <td>Prix Adhérents</td>
     <td>$nbAdherents</td>
@@ -125,7 +128,7 @@ list($prixAdherents, $prixSections, $avantage, $prixTTC, $prixTva, $prixMensuel)
     <tr>
     <td>Prix TTC</td>
     <td> </td>
-    <td>$prixTTC €</td>
+    <td>$prixTTCFormater €</td>
     </tr>
 
     </tbody>
@@ -134,7 +137,7 @@ list($prixAdherents, $prixSections, $avantage, $prixTTC, $prixTva, $prixMensuel)
 
     <br/>
 
-    <h5>Le montant de votre offre personnalisée est de $prixTTC €, soit $prixMensuel € par mois.</h5>";
+    <h5>Le montant de votre offre personnalisée est de $prixTTCFormater €, soit $prixMensuelFormater € par mois.</h5>";
 }
 ?>
                 </tbody>
