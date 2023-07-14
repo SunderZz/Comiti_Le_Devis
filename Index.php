@@ -1,3 +1,16 @@
+<?php
+// demarre la session et stocke les données
+session_start();
+include 'csrf_token.php';
+
+// Générer le token si il n'existe pas encore
+if (!isset($_SESSION['token'])) {
+    $token = CreateToken();
+} else {
+    $token = $_SESSION['token'];
+}
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -22,7 +35,7 @@
   background-color: white;
   }
 </style>
-<script>/* Limiter for Input*/
+<script>/* Limiter pour Input*/
   function adherentsLength(input, maxLength) {
     if (input.value.length > maxLength) {
       input.value = input.value.slice(0, maxLength);
@@ -41,28 +54,31 @@
       <div class="text-center mb-4">
         <h1>Calculez le prix de votre Abonnement à l'année</h1>
       </div>
-    <form method="POST" action="calcul.php">
+      <form method="POST" action="calcul.php">
+        <!-- genere le token dans l'input de facon caché -->
+        <input type="hidden" name="token" value="<?php echo $token; ?>">
+    
         <div class="form-group">
-          <label for="adherents">Votre nombre d'adhérents</label>
-          <input type="text" class="form-control" pattern="\d+" oninput="adherentsLength(this, 7)" name="adherents" required />
-         <small class="form-text text-muted">Entrez uniquement des chiffres.</small>
+            <label for="adherents">Votre nombre d'adhérents</label>
+            <input type="text" class="form-control" pattern="\d+" oninput="adherentsLength(this, 7)" name="adherents" required />
+            <small class="form-text text-muted">Entrez uniquement des chiffres.</small>
         </div>
         <div class="form-group">
-          <label for="sections">Le nombre de sections que vous proposez :</label>
-          <input type="text" class="form-control" pattern="\d+" oninput="sectionLength(this, 4)" name="sections" required />
-          <small class="form-text text-muted">Entrez uniquement des chiffres.</small>
+            <label for="sections">Le nombre de sections que vous proposez :</label>
+            <input type="text" class="form-control" pattern="\d+" oninput="sectionLength(this, 4)" name="sections" required />
+            <small class="form-text text-muted">Entrez uniquement des chiffres.</small>
         </div>
         <div class="form-group">
-          <label for="federation">La fédération à laquelle vous êtes affiliés :</label>
-            <select class="form-control" name="federation"required>
-              <option value="Natation">Natation</option>
-              <option value="Gymnastique">Gymnastique</option>
-              <option value="Basketball">Basketball</option>
-              <option value="Autre">Autre fédération</option>
-          </select>
+            <label for="federation">La fédération à laquelle vous êtes affiliés :</label>
+            <select class="form-control" name="federation" required>
+                <option value="Natation">Natation</option>
+                <option value="Gymnastique">Gymnastique</option>
+                <option value="Basketball">Basketball</option>
+                <option value="Autre">Autre fédération</option>
+            </select>
         </div>
         <button type="submit" class="btn btn-primary">Calcul</button>
-      </form>
+    </form>
     </div>
   </div>
 </body>

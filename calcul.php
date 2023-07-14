@@ -1,3 +1,112 @@
+<?php
+// Session ouverte pour recuperer le token
+session_start();
+include 'csrf_token.php';
+
+// Récupérer le token dans l'input
+$TokenGet = filter_input(INPUT_POST, 'token');
+
+// Vérifier la validité du token, si il n'est pas bon il redirige vers une page erreur
+if (!ValideToken($TokenGet)) {
+    header("Location: erreur.php?message=" . urlencode("Token CSRF invalide."));
+    exit();
+}
+
+function Prix($nbAdherents, $nbSections, $federation) {
+    try {
+        // Adhérents
+        $prixAdherents = 0;
+        // prix selon nombres d'adhérents
+        if ($nbAdherents <= 100) {
+            $prixAdherents = 10 * 12;
+        } elseif ($nbAdherents <= 200) {
+            $prixAdherents = $nbAdherents * 0.10 * 12;
+        } elseif ($nbAdherents <= 500) {
+            $prixAdherents = $nbAdherents * 0.09 * 12;
+        } elseif ($nbAdherents <= 1000) {
+            $prixAdherents = $nbAdherents * 0.08 * 12;
+        } elseif ($nbAdherents >= 10000) {
+            $prixAdherents = 1000 * 12;
+        } else {
+            $tranches = intval($nbAdherents / 1000); // utilisation de intval pour avoir un entier
+            $prixAdherents = $tranches * 70 * 12;
+        }
+
+        // Section
+        $prixSections = 0;
+        // Mois en cours
+        $moisActuel = intval(date("n"));
+        // Prix de la section selon le mois en cours avec une boucle   
+        for ($i = 1; $i <= $nbSections; $i++) {
+            if ($i % $moisActuel === 0) {
+                $prixSections += 3 * 12;
+            } else {
+                $prixSections += 5 * 12;
+            }
+        }
+
+        // Avantage
+        $avantage = 0;
+        // Si il y a plus de 1000 adhérents
+        if ($nbAdherents > 1000) {
+            $prixSections -= 5 * 12;
+        }
+        // avantage selon la fédération    
+        if ($federation === "Natation") {
+            $avantage = (3 * 5) * 12;
+        } elseif ($federation === "Gymnastique") {
+            if ($nbAdherents > 100) {
+                $avantage = $prixAdherents * 0.15;
+            }
+        } elseif ($federation === "Basketball") {
+            $avantage = $prixSections * 0.3;
+        }
+
+        // Tva
+        $prixTVA = 1.2;
+        // Calcul du prix HT
+        if ($federation === "Natation" or $federation === "Basketball") {
+            $prixHT = $prixAdherents + max($prixSections - $avantage, 0);
+        } elseif ($federation === "Gymnastique") {
+            $prixHT = $prixSections + $prixAdherents - $avantage;
+        } else {
+            $prixHT = $prixAdherents + $prixSections;
+        }
+
+        // Prix TTC
+        $prixTTC = $prixHT * $prixTVA;
+        $prixTTCFormater = number_format($prixTTC, 2);
+        // Prix Mensuel
+        $prixMensuel = $prixTTC / 12;
+        $prixMensuelFormater = number_format($prixMensuel, 2);
+
+        // Stock les valeurs dans un tableau
+        return array($prixAdherents, $prixSections, $avantage, $prixTTCFormater, $prixTVA, $prixMensuelFormater);
+    } catch (Exception $e) {
+        throw $e;
+    }
+}
+
+try {
+    if (isset($_POST['adherents'], $_POST['sections'], $_POST['federation'])) {
+        $nbAdherents = filter_input(INPUT_POST, 'adherents', FILTER_VALIDATE_INT);
+        $nbSections = filter_input(INPUT_POST, 'sections', FILTER_VALIDATE_INT);
+        $federation = filter_input(INPUT_POST, 'federation');
+
+        // Appel de la fonction Prix()
+        list($prixAdherents, $prixSections, $avantage, $prixTTCFormater, $prixTva, $prixMensuelFormater) = Prix($nbAdherents, $nbSections, $federation);
+    } else {
+        throw new Exception("Données manquantes.");
+    }
+} catch (Exception $e) {
+    header("Location: erreur.php?message=" . urlencode($e->getMessage()));
+    exit();
+}
+//Supprime les données de la sessions
+session_unset();
+
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -32,114 +141,45 @@
                 </tr>
             </thead>
                 <tbody>
-<?php
-function Prix($nbAdherents, $nbSections, $federation) {
-// Adhérents
-$prixAdherents = 0;
-    // prix selon nombres d'adhérents
-    if ($nbAdherents <= 100) {
-    $prixAdherents = 10 * 12;} 
-    elseif ($nbAdherents <= 200) {
-    $prixAdherents = $nbAdherents * 0.10 * 12;} 
-    elseif ($nbAdherents <= 500) {
-    $prixAdherents = $nbAdherents * 0.09 * 12;} 
-    elseif ($nbAdherents <= 1000) {
-    $prixAdherents = $nbAdherents * 0.08 * 12; }
-    elseif ($nbAdherents >= 10000) {
-    $prixAdherents = 1000 * 12;} 
-    else {
-    $tranches = intval($nbAdherents / 1000);// utilisation de intval pour avoir un entier
-    $prixAdherents = $tranches * 70 * 12;}
-
-// Section
-$prixSections = 0;
-// Mois en cour
-$moisActuel = intval(date("n")); 
-    // Prix de la section selon le mois en cours avec une boucle   
-    for ($i = 1; $i <= $nbSections; $i++) {
-        if ($i % $moisActuel === 0) {
-        $prixSections += 3 * 12;} 
-        else {
-        $prixSections += 5 * 12; }
-        }
-// Avantage
-$avantage = 0;
-    // Si il y a plus de 1000 adhérents
-    if ($nbAdherents > 1000) {
-    $prixSections -= 5 * 12; }
-    // avantage selon la fédération    
-    if ($federation === "Natation") {
-    $avantage = (3 * 5) * 12;}
-    elseif ($federation === "Gymnastique") {
-    if ($nbAdherents > 100) { 
-    $avantage = $prixAdherents * 0.15;}}
-    elseif ($federation === "Basketball") {
-    $avantage = $prixSections * 0.3;}
-//Tva
-$prixTVA = 1.2;
-    //Calcul du prix HT
-    if ($federation === "Natation" or $federation === "Basketball") {
-    $prixHT = $prixAdherents + max($prixSections - $avantage, 0);} 
-    elseif ($federation === "Gymnastique") {
-    $prixHT = $prixSections + $prixAdherents - $avantage;}
-    else {
-    $prixHT = $prixAdherents + $prixSections;}
-// Prix TTC
-$prixTTC = $prixHT * $prixTVA;
-$prixTTCFormater = number_format($prixTTC, 2);
-//Prix Mensuel
-$prixMensuel = $prixTTC / 12;
-$prixMensuelFormater = number_format($prixMensuel, 2);
-
-// Stock les valeurs dans un tableau
-return array($prixAdherents, $prixSections, $avantage, $prixTTCFormater, $prixTVA, $prixMensuelFormater);
-}
-    //Recuperation des inputs 
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $nbAdherents = filter_input(INPUT_POST, 'adherents', FILTER_SANITIZE_SPECIAL_CHARS);
-    $nbSections = filter_input(INPUT_POST, 'sections', FILTER_SANITIZE_SPECIAL_CHARS);
-    $federation = filter_input(INPUT_POST, 'federation', FILTER_SANITIZE_SPECIAL_CHARS);
-// Echo en retournant ce qui est dans  l'array de ma fonction
-list($prixAdherents, $prixSections, $avantage, $prixTTCFormater, $prixTva, $prixMensuelFormater) = Prix($nbAdherents, $nbSections, $federation);
-    echo "<tr>
-    <td>Prix Adhérents</td>
-    <td>$nbAdherents</td>
-    <td>$prixAdherents €</td>
-    </tr>
-
-    <tr>
-    <td>Prix Sections</td>
-    <td>$nbSections</td>
-    <td>$prixSections €</td>
-    </tr>
-
-    <tr>
-    <td>Avantage</td>
-    <td></td>
-    <td>$avantage €</td>
-    </tr>
-
-    <tr>
-    <td>Prix TVA</td>
-    <td> </td>
-    <td>$prixTva &#37;</td>
-    </tr>
-
-    <tr>
-    <td>Prix TTC</td>
-    <td> </td>
-    <td>$prixTTCFormater €</td>
-    </tr>
-
-    </tbody>
-
-    </table>
-
-    <br/>
-
-    <h5>Le montant de votre offre personnalisée est de $prixTTCFormater €, soit $prixMensuelFormater € par mois.</h5>";
-}
-?>
+                    <?php 
+                        echo "<tr>
+                        <td>Prix Adhérents</td>
+                        <td>$nbAdherents</td>
+                        <td>$prixAdherents €</td>
+                        </tr>
+                    
+                        <tr>
+                        <td>Prix Sections</td>
+                        <td>$nbSections</td>
+                        <td>$prixSections €</td>
+                        </tr>
+                    
+                        <tr>
+                        <td>Avantage</td>
+                        <td></td>
+                        <td>$avantage €</td>
+                        </tr>
+                    
+                        <tr>
+                        <td>Prix TVA</td>
+                        <td> </td>
+                        <td>$prixTva &#37;</td>
+                        </tr>
+                    
+                        <tr>
+                        <td>Prix TTC</td>
+                        <td> </td>
+                        <td>$prixTTCFormater €</td>
+                        </tr>
+                    
+                        </tbody>
+                    
+                        </table>
+                    
+                        <br/>
+                    
+                        <h5>Le montant de votre offre personnalisée est de $prixTTCFormater €, soit $prixMensuelFormater € par mois.</h5>";
+                    ?>
                 </tbody>
         </table>
     </div>
