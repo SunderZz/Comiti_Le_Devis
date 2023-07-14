@@ -11,3 +11,5 @@ Petite précision sur mes choix :
 - Je n'ai pas gérer la durée des jetons pour une question de pratique de démo alors les jetons seront générer à chaque sessions
 
 - J'avais le choix de faire une BDD, j'ai préférer créer un service de jetons car le language utilisé devait être du PHP
+
+- Il manquerait la gestion de vol de session poussée mais comme je ne suis pas parfaitement au point sur le sujet, je ne préfère pas le mettre
