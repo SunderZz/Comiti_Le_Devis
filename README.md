@@ -2,9 +2,9 @@
 
 Petite précision sur mes choix :
 
-- Aux niveau des inputs, je les ais "sécurisés" avec FILTER_SANITIZE_SPECIAL_CHARS afin, j'ai rajouter un pattern pour qu'on ne puisses ajouter des signes, et j'ai aussi mis en place une fonction js afin de limité la length des inputs
+- Aux niveau des inputs, je les ais "sécurisés" avec FILTER_SANITIZE_SPECIAL_CHARS afin, qu'on ne puisses ajouter de signes, et j'ai aussi mis en place une fonction js afin de limité la length des inputs
 
-- J'ai décidé d'afficher les nombres 2 chiffres apres la decimales
+- J'ai décidé d'afficher le nombre de chiffres de 2 apres la decimales 
 
 - Il était aussi possible de créer des classes pour listé des propriétés et aussi pour différencié les méthodes
 
